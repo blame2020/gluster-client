@@ -1,0 +1,27 @@
+# See https://docs.docker.com/engine/install/centos/ for details of how to
+
+- name: install packages for glusterfs client
+  become: yes
+  yum:
+    state: installed
+    name:
+      - glusterfs-fuse
+
+- name: Create mount point
+  become: yes
+  file:
+    path: "{{gluster_client_path}}"
+    state: directory
+    owner: root
+    group: root
+    mode: 700
+    recurse: yes
+
+- name: mount
+  become: yes
+  ansible.posix.mount:
+    path: "{{gluster_client_path}}"
+    src: "{{gluster_client_src}}"
+    fstype: glusterfs
+    opts: "defaults,_netdev,{% if backup-volfile-servers %} 'backup-volfile-servers=' + gluster_client_backup {% else %} '' {% endif %}"
+    state: mounted
